@@ -1,133 +1,108 @@
 import * as Babel from "@babel/core";
 import { addNamed } from "@babel/helper-module-imports";
 import * as BabelTypes from "@babel/types";
-import { mergeCatalogs } from "@jochlain/translations";
-import { CatalogType } from "@jochlain/translations/lib/types";
+import { ReplacementType } from "@jochlain/translations/lib/types";
+import { getCatalogValue, translate } from "@jochlain/translations";
 import { MacroError } from "babel-plugin-macros";
-import fs from "fs";
+import { IntlMessageFormat } from "intl-messageformat";
 import path from "path";
-import * as cache from "../cache";
 import { InputType, LoaderType, OptionsType } from "../types";
-import createIntlFormatter from "./intlFormatter";
+import Abstract from "./abstract";
 
 const AVAILABLE_OPTION_KEYS = ['domain', 'host', 'locale'];
-const REGEX_FILENAME = /^(\w+)(\+intl-icu)?\.([\w_]+)(\.(ya?ml|xlf|php|csv|json|ini|dat|res|mo|po|qt))$/i;
 const SIGNATURE = `translate(message: identifier|string, replacements: identifier|{ [key: string]: number|string }, { domain: string = 'messages', locale: identifier|string = 'en', host?: string })`;
 
+const formatter = { format: (message: string, replacements: ReplacementType, locale: string): string => String((new IntlMessageFormat(message, locale)).format(replacements)) };
+let counter = -1;
+
 export default (types: typeof BabelTypes, loader: LoaderType, options: OptionsType) => {
-    return new FactoryTranslate(types, loader, options);
+    return new TranslateMacro(types, loader, options);
 };
 
-class FactoryTranslate {
-    types: typeof BabelTypes;
-    loader: LoaderType;
-    options: OptionsType;
-
-    constructor(types: typeof BabelTypes, loader: LoaderType, options: OptionsType) {
-        this.types = types;
-        this.loader = loader;
-        this.options = options;
-    }
-
+class TranslateMacro extends Abstract {
     buildNode(node: Babel.NodePath<BabelTypes.CallExpression>|null) {
         if (!node) return;
-        if (this.types.isStringLiteral(node.node.arguments[0])) {
-            if (this.isLocaleLiteral(node)) {
-                return this.buildNodeWithLiteralLocaleAndMessage(node);
-            }
-            return this.buildNodeWithIdentifierLocaleAndLiteralMessage(node);
-        }
         if (this.isLocaleLiteral(node)) {
-            return this.buildNodeWithLiteralLocaleAndIdentifierMessage(node);
+            return this.buildNodeWithLiteralLocale(node);
         }
-        return this.buildNodeWithIdentifierLocaleAndMessage(node);
-
-        // const catalogs = this.getCatalogs(node, rootDir, domain, locale);
-        // const method = addDefault(node.parentPath, '@jochlain/translations', { nameHint: `createTranslator_i${counter++}` });
-        // const options = [this.types.objectProperty(this.types.identifier('formatter'), createIntlFormatter(this.types, node))];
-        // if (locale) options.push(this.types.objectProperty(this.types.identifier('locale'), this.types.stringLiteral(locale)));
-        // if (domain) options.push(this.types.objectProperty(this.types.identifier('domain'), this.types.stringLiteral(domain)));
-        //
-        // return this.types.callExpression(method, [
-        //     this.types.valueToNode(catalogs),
-        //     this.types.objectExpression(options)
-        // ]);
+        return this.buildNodeWithIdentifierLocale(node);
     }
 
-    buildNodeWithIdentifierLocaleAndLiteralMessage(node: Babel.NodePath<BabelTypes.CallExpression>) {
-        return;
+    buildNodeWithIdentifierLocale(node: Babel.NodePath<BabelTypes.CallExpression>) {
+        const { catalog, replacements, locale } = this.getArguments(node);
+        const translateMethodIdentifier = addNamed(node.parentPath, 'translate', '@jochlain/translations', { hintedName: `translate_$${++counter}` });
+
+        return this.types.callExpression(translateMethodIdentifier, [
+            this.types.valueToNode(catalog),
+            this.types.valueToNode(replacements),
+            this.types.identifier(locale),
+            this.createIntlFormatter(node),
+        ]);
     }
 
-    buildNodeWithIdentifierLocaleAndMessage(node: Babel.NodePath<BabelTypes.CallExpression>) {
-        return;
+    buildNodeWithLiteralLocale(node: Babel.NodePath<BabelTypes.CallExpression>) {
+        const { catalog, replacements, locale } = this.getArguments(node);
+        const value = translate(catalog, replacements, locale, formatter);
+
+        return this.types.stringLiteral(value);
     }
 
-    buildNodeWithLiteralLocaleAndIdentifierMessage(node: Babel.NodePath<BabelTypes.CallExpression>) {
-        return;
-    }
-
-    buildNodeWithLiteralLocaleAndMessage(node: Babel.NodePath<BabelTypes.CallExpression>) {
+    getArguments(node: Babel.NodePath<BabelTypes.CallExpression>) {
+        const message = this.getArgumentMessage(node);
+        const replacements = this.getArgumentReplacements(node);
         const { domain, host, locale } = this.getOptions(node);
         const rootDir = host ? path.resolve(this.options.rootDir, host) : this.options.rootDir;
-        const filename = fs.readdirSync(rootDir).find((file) => {
-            const [extension, _locale, ...parts] = file.split('.').reverse();
-            if (parts.join('.') !== domain) return false;
-            if (_locale !== locale) return false;
-            return this.loader.extension.test(`.${extension}`);
-        });
 
-        if (!cache.set(filename))
+        if (this.isLocaleLiteral(node)) {
+            const catalogs = this.getCatalogs(node, rootDir, domain, locale);
+            const catalog = { [locale]: catalogs?.[locale]?.[domain] ? getCatalogValue(catalogs[locale][domain], message) : message };
+            return { catalog, replacements, locale };
+        }
 
-        return this.types.stringLiteral('toto');
+        const catalogs = this.getCatalogs(node, rootDir, domain);
+        const catalog = Object.keys(catalogs).reduce((accu, locale) => ({ ...accu, [locale]: getCatalogValue(catalogs[locale][domain], message) }), {});
+        return { catalog, replacements, locale };
     }
 
-    isLocaleLiteral(node: Babel.NodePath<BabelTypes.CallExpression>) {
-        if (!node.node.arguments[2]) return true;
-        if (!this.types.isObjectExpression(node.node.arguments[2])) return false;
-        return node.node.arguments[2].properties.find((property) => {
-            if (!this.types.isObjectProperty(property)) return false;
-            if (!this.types.isIdentifier(property.key) && !this.types.isStringLiteral(property.key)) return false;
+    getArgumentMessage(node: Babel.NodePath<BabelTypes.CallExpression>): string {
+        return (node.node.arguments[0] as BabelTypes.StringLiteral).value;
+    }
+
+    getArgumentReplacements(node: Babel.NodePath<BabelTypes.CallExpression>) {
+        if (node.node.arguments.length <= 1) return {};
+        if (this.types.isNullLiteral(node.node.arguments[1])) return {};
+
+        if (!this.types.isObjectExpression(node.node.arguments[1])) {
+            throw node.parentPath.buildCodeFrameError(
+                `Replacement argument is not an object`,
+                MacroError
+            );
+        }
+
+        return (node.node.arguments[1] as BabelTypes.ObjectExpression).properties.reduce((accu: ReplacementType, property: any) => {
+            if (!this.types.isObjectProperty(property)) return accu;
+            property = property as BabelTypes.ObjectProperty;
+            if (!property) return accu;
+
+            if (!this.types.isIdentifier(property.key) && !this.types.isStringLiteral(property.key)) {
+                throw node.parentPath.buildCodeFrameError(
+                    `Replacements option parameter has an invalid key`,
+                    MacroError
+                );
+            }
+
             const key = this.types.isIdentifier(property.key) ? (property.key as BabelTypes.Identifier).name : (property.key as BabelTypes.StringLiteral).value;
-            return key !== 'locale' && this.types.isStringLiteral(property.value);
-        });
-    }
-
-    getCatalogs(node: Babel.NodePath<BabelTypes.CallExpression>, rootDir: string, domain?: string, locale?: string): CatalogType {
-        const files = this.getFiles(node, rootDir, domain, locale);
-        const catalogs = {};
-        for (let idx = 0; idx < files.length; idx++) {
-            const matches = files[idx].match(REGEX_FILENAME);
-            if (!matches) continue;
-            const [, domain,, locale] = matches;
-            if (!cache.get(files[idx])) {
-                const filename = path.join(rootDir, files[idx]);
-                const content = fs.readFileSync(filename).toString();
-                cache.set(files[idx], this.loader.load(content));
+            if (this.types.isStringLiteral(property.value)) {
+                return { ...accu, [key]: (property.value as BabelTypes.StringLiteral).value };
+            } else if (this.types.isNumericLiteral(property.value)) {
+                return { ...accu, [key]: (property.value as BabelTypes.NumericLiteral).value };
             }
-            Object.assign(catalogs, mergeCatalogs(catalogs, { [locale]: { [domain]: cache.get(files[idx]) } }));
-        }
-        return catalogs;
-    }
 
-    getFiles(node: Babel.NodePath<BabelTypes.CallExpression>, rootDir: string, domain?: string, locale?: string): string[] {
-        try {
-            const stat = fs.lstatSync(rootDir);
-            if (stat.isDirectory()) {
-                return fs.readdirSync(rootDir).filter((filename) => {
-                    const matches = filename.match(REGEX_FILENAME);
-                    if (!matches) return false;
-                    if (domain && matches[1] !== domain) return false;
-                    if (locale && matches[3] !== locale) return false;
-                    return this.loader.extension.test(matches[4]);
-                });
-            }
-        } catch (error) {
-        }
-
-        throw node.parentPath.buildCodeFrameError(
-            `Host parameter must refer to a directory`,
-            MacroError
-        );
+            throw node.parentPath.buildCodeFrameError(
+                `Replacements option parameter must be an object of string or number`,
+                MacroError
+            );
+        }, {});
     }
 
     getOptions(node: Babel.NodePath<BabelTypes.CallExpression>) {
@@ -146,7 +121,10 @@ class FactoryTranslate {
         }
 
         if (!this.types.isStringLiteral(node.node.arguments[0])) {
-            console.warn('Message argument is not a string, all domain will be load');
+            throw node.parentPath.buildCodeFrameError(
+                `Message argument must be a string.\nIf you want to use variable for domain, please use createTranslator instead.\n Signature: ${SIGNATURE}`,
+                MacroError
+            );
         }
 
         if (node.node.arguments[2] && !this.types.isObjectExpression(node.node.arguments[2])) {
@@ -201,5 +179,19 @@ class FactoryTranslate {
         }, {});
 
         return Object.assign({ domain: 'messages', host: undefined, locale: 'en' }, options);
+    }
+
+    isLocaleLiteral(node: Babel.NodePath<BabelTypes.CallExpression>) {
+        if (!node.node.arguments[2]) return true;
+        if (!this.types.isObjectExpression(node.node.arguments[2])) return false;
+        for (let idx = 0; idx < node.node.arguments[2].properties.length; idx++) {
+            const property = node.node.arguments[2].properties[idx];
+            if (!this.types.isObjectProperty(property)) continue;
+            if (!this.types.isIdentifier(property.key) && !this.types.isStringLiteral(property.key)) continue;
+            const key = this.types.isIdentifier(property.key) ? (property.key as BabelTypes.Identifier).name : (property.key as BabelTypes.StringLiteral).value;
+            if (key === 'locale') return this.types.isStringLiteral(property.value);
+        }
+        // For options without locale
+        return true;
     }
 }

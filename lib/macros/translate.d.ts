@@ -1,22 +1,23 @@
 import * as Babel from "@babel/core";
 import * as BabelTypes from "@babel/types";
-import { CatalogType } from "@jochlain/translations/lib/types";
+import { ReplacementType } from "@jochlain/translations/lib/types";
 import { LoaderType, OptionsType } from "../types";
-declare const _default: (types: typeof BabelTypes, loader: LoaderType, options: OptionsType) => FactoryTranslate;
+import Abstract from "./abstract";
+declare const _default: (types: typeof BabelTypes, loader: LoaderType, options: OptionsType) => TranslateMacro;
 export default _default;
-declare class FactoryTranslate {
-    types: typeof BabelTypes;
-    loader: LoaderType;
-    options: OptionsType;
-    constructor(types: typeof BabelTypes, loader: LoaderType, options: OptionsType);
-    buildNode(node: Babel.NodePath<BabelTypes.CallExpression> | null): void | Babel.types.StringLiteral;
-    buildNodeWithIdentifierLocaleAndLiteralMessage(node: Babel.NodePath<BabelTypes.CallExpression>): void;
-    buildNodeWithIdentifierLocaleAndMessage(node: Babel.NodePath<BabelTypes.CallExpression>): void;
-    buildNodeWithLiteralLocaleAndIdentifierMessage(node: Babel.NodePath<BabelTypes.CallExpression>): void;
-    buildNodeWithLiteralLocaleAndMessage(node: Babel.NodePath<BabelTypes.CallExpression>): Babel.types.StringLiteral | undefined;
-    isLocaleLiteral(node: Babel.NodePath<BabelTypes.CallExpression>): boolean | Babel.types.ObjectMethod | Babel.types.ObjectProperty | Babel.types.SpreadElement | undefined;
-    getCatalogs(node: Babel.NodePath<BabelTypes.CallExpression>, rootDir: string, domain?: string, locale?: string): CatalogType;
-    getFiles(node: Babel.NodePath<BabelTypes.CallExpression>, rootDir: string, domain?: string, locale?: string): string[];
+declare class TranslateMacro extends Abstract {
+    buildNode(node: Babel.NodePath<BabelTypes.CallExpression> | null): Babel.types.CallExpression | Babel.types.StringLiteral | undefined;
+    buildNodeWithIdentifierLocale(node: Babel.NodePath<BabelTypes.CallExpression>): Babel.types.CallExpression;
+    buildNodeWithLiteralLocale(node: Babel.NodePath<BabelTypes.CallExpression>): Babel.types.StringLiteral;
+    getArguments(node: Babel.NodePath<BabelTypes.CallExpression>): {
+        catalog: {
+            [x: string]: string;
+        };
+        replacements: ReplacementType;
+        locale: string;
+    };
+    getArgumentMessage(node: Babel.NodePath<BabelTypes.CallExpression>): string;
+    getArgumentReplacements(node: Babel.NodePath<BabelTypes.CallExpression>): ReplacementType;
     getOptions(node: Babel.NodePath<BabelTypes.CallExpression>): {
         domain: string;
         host: undefined;
@@ -26,4 +27,5 @@ declare class FactoryTranslate {
     } | {
         [x: string]: any;
     });
+    isLocaleLiteral(node: Babel.NodePath<BabelTypes.CallExpression>): boolean;
 }

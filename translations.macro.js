@@ -1,7 +1,7 @@
 var { createMacro } = require("babel-plugin-macros");
-var getMacro = require("./lib").default;
+var getTranslationMacro = require("./lib").default;
 
-var macro = getMacro({
+var macro = getTranslationMacro({
     extension: /\.json$/,
     load: function (content) {
         return JSON.parse(content);
