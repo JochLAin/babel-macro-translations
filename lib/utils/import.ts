@@ -1,5 +1,5 @@
 import * as Babel from "@babel/core";
-import isModule, { addDefault, addNamed } from "@babel/helper-module-imports";
+import { addDefault, addNamed, isModule } from "@babel/helper-module-imports";
 import * as BabelTypes from "@babel/types";
 import { MacroError } from "babel-plugin-macros";
 
