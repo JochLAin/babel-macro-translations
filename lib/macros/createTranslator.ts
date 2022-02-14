@@ -1,15 +1,13 @@
 import * as Babel from "@babel/core";
-import { addDefault } from "@babel/helper-module-imports";
 import * as BabelTypes from "@babel/types";
 import { MacroError } from "babel-plugin-macros";
 import path from "path";
 import { LoaderType, OptionsType } from "../types";
+import getModule from "../utils/import";
 import Abstract from "./abstract";
 
 const AVAILABLE_OPTION_KEYS = ['domain', 'host', 'locale'];
 const SIGNATURE = `createTranslator({ domain?: string, host?: string, locale?: identifier|string })`;
-
-let counter = 0;
 
 export default (types: typeof BabelTypes, loader: LoaderType, options: OptionsType) => {
     return new CreateTranslatorMacro(types, loader, options);
@@ -17,12 +15,12 @@ export default (types: typeof BabelTypes, loader: LoaderType, options: OptionsTy
 
 class CreateTranslatorMacro extends Abstract {
     buildNode(node: Babel.NodePath<BabelTypes.CallExpression>|null) {
-        if (!node) return;
+        if (node === null) return;
         const { domain, host, locale } = this.getOptions(node);
         const rootDir = host ? path.join(this.options.rootDir, host) : this.options.rootDir;
+        const method = getModule(node, '@jochlain/translations', 'createTranslator', true);
         const catalogs = this.getCatalogs(node, rootDir, domain, locale);
 
-        const method = addDefault(node.parentPath, '@jochlain/translations', { nameHint: `createTranslator_i${counter++}` });
         const options = [this.types.objectProperty(this.types.identifier('formatter'), this.createIntlFormatter(node))];
         if (locale) options.push(this.types.objectProperty(this.types.identifier('locale'), this.types.stringLiteral(locale)));
         if (domain) options.push(this.types.objectProperty(this.types.identifier('domain'), this.types.stringLiteral(domain)));

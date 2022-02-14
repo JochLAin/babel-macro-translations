@@ -1,4 +1,4 @@
-import { translate } from "../translations.macro";
+import { translate } from "../macro";
 
 const locale = 'fr';
 

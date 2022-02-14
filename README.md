@@ -1,13 +1,24 @@
-# @jochlain/babel-macro-translations
+# @jochlain/translations-json
 
-Babel macro for [@jochlain/translations](https://www.npmjs.com/package/@jochlain/translations)
+Babel macro for [@jochlain/translations](https://www.npmjs.com/package/@jochlain/translations) and JSON files
 
 > **Disclaimer :** This module is inspired from [babel macros from fontawesome](https://fontawesome.com/docs/web/use-with/react/add-icons).
 
 > This module uses package [intl-messageformat](https://www.npmjs.com/package/intl-messageformat) to format/pluralize message.
 
-This module load json files, if you use another extension see :
-- [YAML files](https://www.npmjs.com/package/@jochlain/babel-macro-translations-yaml)
+Macro by file format :
+- [JSON files](https://www.npmjs.com/package/@jochlain/translations-json)
+- [YAML files](https://www.npmjs.com/package/@jochlain/translations-yaml)
+
+## Summary
+
+- [Installation](#installation)
+  - [Install babel macros](#install-the-babel-macros)
+  - [Setup babel configuration](#setup-babel-configuration)
+- [Usage](#usage)
+  - [Macro translate](#translate-macro-usage)
+  - [Macro createTranslator](#createtranslator-macro-usage)
+  - [Work with host scope](#work-with-host-scope)
 
 ## Installation
 
@@ -15,12 +26,12 @@ In a real project, translations are not simple objects but files, like in a [Sym
 That's why I added a [Babel macro](https://www.npmjs.com/package/babel-plugin-macros) to import and format these same files.
 
 It allows you to create a translator and use it easily, with node, with webpack or in server-side rendering.  
-[Here are translation files]() that I used below.
+[Here are translation files](https://github.com/JochLAin/babel-macro-translations/tree/main/test/translations) that I used below.
 
 ### Install the babel macros
 
 ```shell
-npm install --save babel-plugin-macros @jochlain/babel-macro-translations
+npm install --save babel-plugin-macros @jochlain/translations-json
 ```
 
 ### Setup babel configuration
@@ -67,7 +78,7 @@ It has 2 forms :
 ### Examples
 
 ```javascript
-import { translate } from "@jochlain/babel-macro-translations/translations.macro";
+import { translate } from "@jochlain/translations-json/macro";
 
 translate('hello');
 translate('hello', null, { locale: 'en' });
@@ -79,11 +90,13 @@ translate('hello', null, { locale });
 translate('diff.ago.minute', { count: 2 }, { domain: 'times', locale });
 ```
 
+> More usage example [here](https://github.com/JochLAin/babel-macro-translations/blob/main/test/translate.test.js)
+
 <details>
     <summary><b>Transformed code</b></summary>
 
 ```javascript
-import createTranslator from "@jochlain/babel-macro-translations/translations.macro";
+import createTranslator from "@jochlain/translations-json/macro";
 import { translate as _translate } from "@jochlain/translations"
 import { IntlMessageFormat as _IntlMessageFormat } from "intl-messageformat";
 const jochlain_translations_intl_formatter = {
@@ -118,7 +131,7 @@ _translate({
 If you can separate client and server translations, to keep compilation performance you can create a translator with all translations.
 
 ```javascript
-import { createTranslator } from "@jochlain/babel-macro-translations/translations.macro";
+import { createTranslator } from "@jochlain/translations-json/macro";
 
 // Load all files
 const translator = createTranslator();
@@ -128,11 +141,13 @@ const translator = createTranslator({ domain: 'forms' });
 const translator = createTranslator({ locale: 'fr' });
 ```
 
+> More usage example [here](https://github.com/JochLAin/babel-macro-translations/blob/main/test/createTranslator.test.js)
+
 <details>
     <summary><b>Transformed code</b></summary>
 
 ```javascript
-import createTranslator from "@jochlain/babel-macro-translations/translations.macro";
+import createTranslator from "@jochlain/translations-json/macro";
 import _createTranslator from "@jochlain/translations"
 import { IntlMessageFormat } from "intl-messageformat";
 const formatter = {
@@ -365,7 +380,7 @@ If `rootDir` is `translations` and translation file is under `translations/front
 And call them like below.
 
 ```javascript
-import createTranslator from "@jochlain/babel-macro-translations/translations.macro";
+import createTranslator from "@jochlain/translations-json/macro";
 
 const translatorFront = createTranslator();
 translatorFront.translate('some back message') // => "some back message"
@@ -373,7 +388,7 @@ translatorFront.translate('some front message') // => "it's public"
 ```
 
 ```javascript
-import createTranslator from "@jochlain/babel-macro-translations/translations.macro";
+import createTranslator from "@jochlain/translations-json/macro";
 
 const translatorBack = createTranslator({ host: 'back' });
 const translatorFront = createTranslator();
@@ -384,21 +399,21 @@ translatorFront.translate('some back message') // => "some back message"
 translatorFront.translate('hello') // => "Hello"
 ```
 
-### Good practices
+#### Good practices
 
 In order to keep good performance, you can create a file by domain which can be included after in your different components.  
 This avoids loading catalogs several times.
 
 ```javascript
 // ./assets/translators/index.js
-import createTranslator from "@jochlain/babel-macro-translations/translations.macro";
+import createTranslator from "@jochlain/translations-json/macro";
 
 export default createTranslator('front');
 ```
 
 ```javascript
 // ./assets/translators/back.js
-import createTranslator from "@jochlain/babel-macro-translations/translations.macro";
+import createTranslator from "@jochlain/translations-json/macro";
 
 export default createTranslator('back');
 ```

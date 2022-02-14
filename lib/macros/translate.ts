@@ -1,5 +1,4 @@
 import * as Babel from "@babel/core";
-import { addNamed } from "@babel/helper-module-imports";
 import * as BabelTypes from "@babel/types";
 import { ReplacementType } from "@jochlain/translations/lib/types";
 import { getCatalogValue, translate } from "@jochlain/translations";
@@ -7,6 +6,7 @@ import { MacroError } from "babel-plugin-macros";
 import { IntlMessageFormat } from "intl-messageformat";
 import path from "path";
 import { InputType, LoaderType, OptionsType } from "../types";
+import getModule from "../utils/import";
 import Abstract from "./abstract";
 
 const AVAILABLE_OPTION_KEYS = ['domain', 'host', 'locale'];
@@ -30,7 +30,7 @@ class TranslateMacro extends Abstract {
 
     buildNodeWithIdentifierLocale(node: Babel.NodePath<BabelTypes.CallExpression>) {
         const { catalog, replacements, locale } = this.getArguments(node);
-        const translateMethodIdentifier = addNamed(node.parentPath, 'translate', '@jochlain/translations', { hintedName: `translate_$${++counter}` });
+        const translateMethodIdentifier = getModule(node, '@jochlain/translations', 'translate');
 
         return this.types.callExpression(translateMethodIdentifier, [
             this.types.valueToNode(catalog),

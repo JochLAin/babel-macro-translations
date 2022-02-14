@@ -1,15 +1,15 @@
 import * as Babel from "@babel/core";
-import { addNamed } from "@babel/helper-module-imports";
 import * as BabelTypes from "@babel/types";
-import { CatalogType, TranslationType } from "@jochlain/translations/lib/types";
+import { TranslationType } from "@jochlain/translations/lib/types";
 import { mergeCatalogs } from "@jochlain/translations";
 import { MacroError } from "babel-plugin-macros";
 import fs from "fs";
 import path from "path";
 import * as cache from "../cache";
 import { LoaderType, OptionsType } from "../types";
+import getModule, { getProgramBody, insertImport } from "../utils/import";
 
-let counter = -1;
+const INTL_IDENTIFIER = 'jochlain_translation_intl_formatter';
 
 export default class Abstract {
     types: typeof BabelTypes;
@@ -22,16 +22,33 @@ export default class Abstract {
         this.options = options;
     }
 
-    createIntlFormatter(node: Babel.NodePath) {
-        const nodeIntl = addNamed(node.parentPath, 'IntlMessageFormat', 'intl-messageformat', { hintedName: `IntlMessageFormat_$${++counter}` });
-        const nodeFormatter = this.types.identifier(`jochlain_translation_intl_formatter`);
+    createIntlFormatter(node: Babel.NodePath<BabelTypes.CallExpression>) {
+        const findIntlIdentifier = (child: Babel.NodePath<BabelTypes.Node>) => {
+            if (this.types.isVariableDeclaration(child)) {
+                for (let decl_idx = 0; decl_idx < child.declarations.length; decl_idx++) {
+                    const declarator = child.declarations[decl_idx];
+                    if (this.types.isIdentifier(declarator.id) && declarator.id.name === INTL_IDENTIFIER) {
+                        return declarator.id;
+                    }
+                }
+            }
+        }
+
+        const body = getProgramBody(node);
+        for (let idx = 0; idx < body.length; idx++) {
+            const identifier = findIntlIdentifier(body[idx]);
+            if (identifier) return identifier;
+        }
+
+        const nodeIntl = getModule(node, 'intl-messageformat', 'IntlMessageFormat');
+        const nodeIdentifier = this.types.identifier(INTL_IDENTIFIER);
         const nodeLocale = this.types.identifier('locale');
         const nodeMessage = this.types.identifier('message');
         const nodeReplacements = this.types.identifier('replacements');
 
-        const nodeDeclaration = this.types.variableDeclaration('const', [
+        insertImport(node, this.types.variableDeclaration('const', [
             this.types.variableDeclarator(
-                nodeFormatter,
+                nodeIdentifier,
                 this.types.objectExpression([
                     this.types.objectProperty(
                         this.types.identifier('format'),
@@ -52,20 +69,9 @@ export default class Abstract {
                     )
                 ])
             )
-        ]);
+        ]));
 
-        const programPath = node.parentPath?.find((nodePath) => nodePath.isProgram());
-        if (programPath) {
-            const body = programPath.get('body') as Babel.NodePath<Babel.Node>[];
-            for (let idx = body.length - 1; idx >= 0; idx--) {
-                if (body[idx].isImportDeclaration()) {
-                    body[idx].insertAfter(nodeDeclaration);
-                    break;
-                }
-            }
-        }
-
-        return nodeFormatter;
+        return nodeIdentifier;
     }
 
     getCatalogs(node: Babel.NodePath<BabelTypes.CallExpression>, rootDir: string, domain?: string, locale?: string): TranslationType {
@@ -75,13 +81,6 @@ export default class Abstract {
             Object.assign(catalogs, mergeCatalogs(catalogs, this.load(rootDir, files[idx])));
         }
         return catalogs;
-    }
-
-    getCatalog(node: Babel.NodePath<BabelTypes.CallExpression>, rootDir: string, domain: string, locale: string): { [locale: string]: CatalogType } {
-        const file = this.getFile(node, rootDir, domain, locale);
-        if (!file) return {};
-        const translations = this.load(rootDir, file);
-        return { [locale]: translations[locale][domain] };
     }
 
     getFiles(node: Babel.NodePath<BabelTypes.CallExpression>, rootDir: string, domain?: string, locale?: string): string[] {
@@ -97,10 +96,6 @@ export default class Abstract {
             `Host parameter must refer to a directory`,
             MacroError
         );
-    }
-
-    getFile(node: Babel.NodePath<BabelTypes.CallExpression>, rootDir: string, domain: string, locale: string): string|undefined {
-        return fs.readdirSync(rootDir).find((file) => this.testFile(file, domain, locale));
     }
 
     load(rootDir: string, file: string): TranslationType {
