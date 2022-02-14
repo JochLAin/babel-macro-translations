@@ -1,0 +1,21 @@
+{
+    "diff": {
+        "empty": "now",
+        "ago": {
+            "year": "{count, plural, one {1 year ago} other {# years ago}}",
+            "month": "{count, plural, one {1 month ago} other {# months ago}}",
+            "day": "{count, plural, one {1 day ago} other {# days ago}}",
+            "hour": "{count, plural, one {1 hour ago} other {# hours ago}}",
+            "minute": "{count, plural, one {1 minute ago} other {# minutes ago}}",
+            "second": "{count, plural, one {1 second ago} other {# seconds ago}}"
+        },
+        "in": {
+            "second": "{count, plural, one {in 1 second} other {in # seconds}}",
+            "minute": "{count, plural, one {in 1 minute} other {in # minutes}}",
+            "hour": "{count, plural, one {in 1 hour} other {in # hours}}",
+            "day": "{count, plural, one {in 1 day} other {in # days}}",
+            "month": "{count, plural, one {in 1 month} other {in # months}}",
+            "year": "{count, plural, one {in 1 year} other {in # years}}"
+        }
+    }
+}

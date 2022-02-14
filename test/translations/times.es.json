@@ -1,0 +1,21 @@
+{
+    "diff": {
+        "empty": "ahora",
+        "ago": {
+            "year": "{count, plural, one {hace 1 año} other {hace # años}}",
+            "month": "{count, plural, one {hace 1 mes} other {hace # meses}}",
+            "day": "{count, plural, one {hace 1 día} other {hace # días}}",
+            "hour": "{count, plural, one {hace 1 hora} other {hace # horas}}",
+            "minute": "{count, plural, one {hace 1 minuto} other {hace # minutos}}",
+            "second": "{count, plural, one {hace 1 segundo} other {hace # segundos}}"
+        },
+        "in": {
+            "second": "{count, plural, one {en 1 segundo} other {en # segundos}}",
+            "minute": "{count, plural, one {en 1 minuto} other {en # minutos}}",
+            "hour": "{count, plural, one {en 1 hora} other {en # horas}}",
+            "day": "{count, plural, one {en 1 día} other {en # días}}",
+            "month": "{count, plural, one {en 1 mes} other {en # meses}}",
+            "year": "{count, plural, one {en 1 año} other {en # años}}"
+        }
+    }
+}

@@ -1,0 +1,9 @@
+{
+  "hello": "Hello",
+  "translations.are.incredible": "The translations are incredible.",
+  "very": {
+    "compound": {
+      "key": "The compound key"
+    }
+  }
+}

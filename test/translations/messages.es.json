@@ -1,0 +1,9 @@
+{
+  "hello": "Holà",
+  "translations.are.incredible": "Las traducciones son increíbles.",
+  "very": {
+    "compound": {
+      "key": "La llave compuesta"
+    }
+  }
+}

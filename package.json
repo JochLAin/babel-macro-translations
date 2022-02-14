@@ -1,0 +1,42 @@
+{
+  "name": "@jochlain/babel-macro-translations",
+  "version": "1.0.0",
+  "description": "Babel macro for @jochlain/translations",
+  "main": "translations-json.macro.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "build": "npx tsc",
+    "debug": "NODE_ENV=test npx babel-node test/index.js",
+    "watch": "npx tsc -w",
+    "test": "npx jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JochLAin/babel-macro-translations.git"
+  },
+  "author": "Jocelyn Faihy <jocelyn.faihy@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/JochLAin/babel-macro-translations/issues"
+  },
+  "homepage": "https://github.com/JochLAin/babel-macro-translations#readme",
+  "dependencies": {
+    "@babel/helper-module-imports": "^7.16.7",
+    "babel-plugin-macros": "^3.1.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.17.2",
+    "@babel/node": "^7.16.8",
+    "@babel/preset-env": "^7.16.11",
+    "@babel/preset-typescript": "^7.16.7",
+    "@jochlain/translations": "^1.2.2",
+    "@types/babel-plugin-macros": "^2.8.5",
+    "@types/babel-types": "^7.0.11",
+    "babel-jest": "^27.5.1",
+    "intl-messageformat": "^9.11.4",
+    "jest": "^27.5.1",
+    "typescript": "^4.5.5"
+  }
+}

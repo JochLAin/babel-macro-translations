@@ -1,0 +1,9 @@
+{
+  "hello": "Ciao",
+  "translations.are.incredible": "Le traduzioni sono incredibili.",
+  "very": {
+    "compound": {
+      "key": "La chiave composta"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+    "diff": {
+        "empty": "maintenant",
+        "ago": {
+            "year": "{count, plural, one {il y a 1 an} other {il y a # ans}}",
+            "month": "{count, plural, one {il y a 1 mois} other {il y a # mois}}",
+            "day": "{count, plural, one {il y a 1 jour} other {il y a # jours}}",
+            "hour": "{count, plural, one {il y a 1 heure} other {il y a # heures}}",
+            "minute": "{count, plural, one {il y a 1 minute} other {il y a # minutes}}",
+            "second": "{count, plural, one {il y a 1 seconde} other {il y a # secondes}}"
+        },
+        "in": {
+            "second": "{count, plural, one {dans 1 seconde} other {dans # secondes}}",
+            "minute": "{count, plural, one {dans 1 minute} other {dans # minutes}}",
+            "hour": "{count, plural, one {dans 1 heure} other {dans # heures}}",
+            "day": "{count, plural, one {dans 1 jour} other {dans # jours}}",
+            "month": "{count, plural, one {dans 1 mois} other {dans # mois}}",
+            "year": "{count, plural, one {dans 1 an} other {dans # ans}}"
+        }
+    }
+}
