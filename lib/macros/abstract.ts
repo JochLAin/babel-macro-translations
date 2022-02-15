@@ -23,21 +23,16 @@ export default class Abstract {
     }
 
     createIntlFormatter(node: Babel.NodePath<BabelTypes.CallExpression>) {
-        const findIntlIdentifier = (child: Babel.NodePath<BabelTypes.Node>) => {
-            if (this.types.isVariableDeclaration(child)) {
-                for (let decl_idx = 0; decl_idx < child.declarations.length; decl_idx++) {
-                    const declarator = child.declarations[decl_idx];
-                    if (this.types.isIdentifier(declarator.id) && declarator.id.name === INTL_IDENTIFIER) {
-                        return declarator.id;
-                    }
-                }
-            }
-        }
-
         const body = getProgramBody(node);
         for (let idx = 0; idx < body.length; idx++) {
-            const identifier = findIntlIdentifier(body[idx]);
-            if (identifier) return identifier;
+            if (!this.types.isVariableDeclaration(body[idx].node)) continue;
+            const child = body[idx].node as BabelTypes.VariableDeclaration;
+            for (let decl_idx = 0; decl_idx < child.declarations.length; decl_idx++) {
+                const declarator = child.declarations[decl_idx];
+                if (this.types.isIdentifier(declarator.id) && declarator.id.name === INTL_IDENTIFIER) {
+                    return declarator.id;
+                }
+            }
         }
 
         const nodeIntl = getModule(node, 'intl-messageformat', 'IntlMessageFormat');
@@ -75,12 +70,16 @@ export default class Abstract {
     }
 
     getCatalogs(node: Babel.NodePath<BabelTypes.CallExpression>, rootDir: string, domain?: string, locale?: string): TranslationType {
-        const files = this.getFiles(node, rootDir, domain, locale);
-        const catalogs = {};
-        for (let idx = 0; idx < files.length; idx++) {
-            Object.assign(catalogs, mergeCatalogs(catalogs, this.load(rootDir, files[idx])));
+        const key = `${path.relative(process.cwd(), rootDir)}/${domain || ''}/${locale || ''}`;
+        if (!cache.get(key)) {
+            const files = this.getFiles(node, rootDir, domain, locale);
+            const catalogs = {};
+            for (let idx = 0; idx < files.length; idx++) {
+                Object.assign(catalogs, mergeCatalogs(catalogs, this.load(rootDir, files[idx])));
+            }
+            cache.set(key, catalogs);
         }
-        return catalogs;
+        return cache.get(key);
     }
 
     getFiles(node: Babel.NodePath<BabelTypes.CallExpression>, rootDir: string, domain?: string, locale?: string): string[] {

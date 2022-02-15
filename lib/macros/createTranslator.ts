@@ -18,7 +18,7 @@ class CreateTranslatorMacro extends Abstract {
         if (node === null) return;
         const { domain, host, locale } = this.getOptions(node);
         const rootDir = host ? path.join(this.options.rootDir, host) : this.options.rootDir;
-        const method = getModule(node, '@jochlain/translations', 'createTranslator', true);
+        const method = getModule(node, '@jochlain/translations', 'createTranslator');
         const catalogs = this.getCatalogs(node, rootDir, domain, locale);
 
         const options = [this.types.objectProperty(this.types.identifier('formatter'), this.createIntlFormatter(node))];

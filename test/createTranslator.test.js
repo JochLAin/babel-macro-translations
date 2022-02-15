@@ -1,4 +1,5 @@
 import { createTranslator } from "../macro";
+
 const translator = createTranslator();
 
 test('CreateTranslator macro with simplest translations', () => {
