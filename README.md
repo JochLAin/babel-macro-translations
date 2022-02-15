@@ -1,14 +1,13 @@
 # @jochlain/translations-json
 
-Babel macro for [@jochlain/translations](https://www.npmjs.com/package/@jochlain/translations) and JSON files
+Babel macro for [@jochlain/translations](https://www.npmjs.com/package/@jochlain/translations)
+
+### With JSON files
+### [With YAML files](https://www.npmjs.com/package/@jochlain/translations-yaml)
 
 > **Disclaimer :** This module is inspired from [babel macros from fontawesome](https://fontawesome.com/docs/web/use-with/react/add-icons).
 
 > This module uses package [intl-messageformat](https://www.npmjs.com/package/intl-messageformat) to format/pluralize message.
-
-Macro by file format :
-- [JSON files](https://www.npmjs.com/package/@jochlain/translations-json)
-- [YAML files](https://www.npmjs.com/package/@jochlain/translations-yaml)
 
 ## Summary
 

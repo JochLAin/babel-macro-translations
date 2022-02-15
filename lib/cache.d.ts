@@ -1,7 +1,6 @@
-import { CatalogType } from "@jochlain/translations/lib/types";
-export declare const set: (key: string, value: CatalogType) => {
-    [key: string]: CatalogType;
+export declare const set: (key: string, value: any) => {
+    [key: string]: any;
 } & {
-    [x: string]: CatalogType;
+    [x: string]: any;
 };
-export declare const get: (key: string) => CatalogType;
+export declare const get: (key: string) => any;

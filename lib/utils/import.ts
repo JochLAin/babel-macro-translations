@@ -34,7 +34,8 @@ const searchModule = (node: Babel.NodePath<BabelTypes.Node>, moduleName: string,
         if (['babel', 'compiled', 'uncompiled'].includes(IMPORT_OPTIONS.importedInterop)) {
             if (isModuleForNode || isModuleForBabel) {
                 return searchModuleInImport(node, moduleName, name, isDefault);
-            // } else {
+            } else {
+                return null;
             //     return searchModuleInRequire(node, moduleName, name, isDefault);
             }
         } else {
@@ -43,20 +44,20 @@ const searchModule = (node: Babel.NodePath<BabelTypes.Node>, moduleName: string,
     } else {
         throw new Error(`Unexpected interopType "${IMPORT_OPTIONS.importedType}"`);
     }
-    return null;
 }
 
 const searchModuleInImport = (node: Babel.NodePath<BabelTypes.Node>, moduleName: string, name: string, isDefault: boolean = false): BabelTypes.Identifier|null => {
     const body = getProgramBody(node);
     for (let idx = 0; idx < body.length; idx++) {
-        if (!body[idx].isImportDeclaration()) return null;
+        if (!BabelTypes.isImportDeclaration(body[idx].node)) return null;
         const child = body[idx].node as BabelTypes.ImportDeclaration;
         if (child.source.value !== moduleName) continue;
-        for (let spec_idx = 0; child.specifiers.length; spec_idx++) {
+        for (let spec_idx = 0; spec_idx < child.specifiers.length; spec_idx++) {
             const specifier = child.specifiers[spec_idx];
             if (isDefault) {
                 if (BabelTypes.isImportDefaultSpecifier(specifier)) {
-                    return specifier.local;
+                    throw new Error('Can\'t fully support default import');
+                    // return specifier.local;
                 }
             } else {
                 if (BabelTypes.isImportSpecifier(specifier)) {
@@ -70,7 +71,6 @@ const searchModuleInImport = (node: Babel.NodePath<BabelTypes.Node>, moduleName:
             }
         }
     }
-
     return null;
 };
 
