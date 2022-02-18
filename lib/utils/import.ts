@@ -95,10 +95,10 @@ export const getProgramPath = (node: Babel.NodePath<BabelTypes.Node>): Babel.Nod
     if (!programMap.has(node)) {
         const programPath = node.find((node) => node.isProgram());
         if (!programPath) {
-            throw node.parentPath?.buildCodeFrameError(
-                `Can't reach program node`,
-                MacroError
-            );
+            throw node.parentPath
+                ? node.parentPath.buildCodeFrameError(`Can't reach program node`, MacroError)
+                : new Error(`Can't reach program node`)
+            ;
         }
         programMap.set(node, programPath as Babel.NodePath<BabelTypes.Program>);
     }

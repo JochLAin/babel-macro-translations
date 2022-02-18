@@ -55,7 +55,11 @@ class TranslateMacro extends Abstract {
 
         if (this.isLocaleLiteral(node)) {
             const catalogs = this.getCatalogs(node, rootDir, domain, locale);
-            const catalog = { [locale]: catalogs?.[locale]?.[domain] ? getCatalogValue(catalogs[locale][domain], message) : message };
+            let value = message;
+            if (catalogs && catalogs[locale] && catalogs[locale][domain]) {
+                value = getCatalogValue(catalogs[locale][domain], message);
+            }
+            const catalog = { [locale]: value };
             return { catalog, replacements, locale };
         }
 
@@ -134,7 +138,7 @@ class TranslateMacro extends Abstract {
             );
         }
 
-        const options = (node.node.arguments[2]?.properties || []).reduce((accu: InputType, property: any) => {
+        const options = ((node.node.arguments[2]? node.node.arguments[2].properties : []) || []).reduce((accu: InputType, property: any) => {
             if (!this.types.isObjectProperty(property)) {
                 throw node.parentPath.buildCodeFrameError(
                     `Method option parameter must be an object of strings`,
