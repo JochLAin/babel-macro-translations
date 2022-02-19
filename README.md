@@ -18,6 +18,7 @@ Babel macro for [@jochlain/translations](https://www.npmjs.com/package/@jochlain
   - [Macro translate](#translate-macro-usage)
   - [Macro createTranslator](#createtranslator-macro-usage)
   - [Work with host scope](#work-with-host-scope)
+- [Create your own](#create-your-own)
 
 ## Installation
 
@@ -430,4 +431,23 @@ import translatorFront from '../../translators';
 
 translatorBack.translate('some back message') // => "it's private"
 translatorFront.translate('hello') // => "Hello"
+```
+
+## Create your own
+
+```javascript
+var { createMacro } = require("babel-plugin-macros");
+var getTranslationMacro = require("./lib").default;
+
+var macro = getTranslationMacro({
+    extension: /__YOUR_EXTENSION_REGEX__/,
+    load: function (content) {
+        // From file content return parsed object
+    },
+});
+
+module.exports = createMacro(macro, {
+    configName: '__YOUR_NAME__',
+});
+
 ```
