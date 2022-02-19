@@ -28,28 +28,28 @@ export default (loader: LoaderType) =>  ({ babel, config, references }: MacroPar
         references[method].forEach((node: Babel.NodePath<BabelTypes.Node>) => {
             if (!node.parentPath) return;
             if (!types.isCallExpression(node.parentPath.node)) {
-                throw node.parentPath?.buildCodeFrameError(
-                    `Only method call can be used by macro`,
-                    MacroError
-                );
+                throw node.parentPath
+                    ? node.parentPath.buildCodeFrameError(`Only method call can be used by macro`, MacroError)
+                    : new Error(`Only method call can be used by macro`)
+                ;
             }
 
             if (!AVAILABLE_METHODS.includes(method)) {
-                throw node.parentPath?.buildCodeFrameError(
-                    `Method must be one of ${AVAILABLE_METHODS.join(' or ')}`,
-                    MacroError
-                );
+                throw node.parentPath
+                    ? node.parentPath.buildCodeFrameError(`Method must be one of ${AVAILABLE_METHODS.join(' or ')}`, MacroError)
+                    : new Error(`Method must be one of ${AVAILABLE_METHODS.join(' or ')}`)
+                ;
             }
 
             switch (method) {
                 case 'createTranslator': {
                     const translator = factoryTranslator.buildNode(node.parentPath as Babel.NodePath<BabelTypes.CallExpression>);
-                    if (translator) node.parentPath?.replaceWith(translator);
+                    if (translator && node.parentPath) node.parentPath.replaceWith(translator);
                     break;
                 }
                 case 'translate': {
                     const translate = factoryTranslate.buildNode(node.parentPath as Babel.NodePath<BabelTypes.CallExpression>);
-                    if (translate) node.parentPath?.replaceWith(translate);
+                    if (translate && node.parentPath) node.parentPath.replaceWith(translate);
                     break;
                 }
             }
