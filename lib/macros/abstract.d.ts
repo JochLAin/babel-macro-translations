@@ -1,6 +1,6 @@
 import * as Babel from "@babel/core";
 import * as BabelTypes from "@babel/types";
-import { TranslationType } from "@jochlain/translations/lib/types";
+import { TranslationType } from "@jochlain/translations/lib";
 import { LoaderType, OptionsType } from "../types";
 export default class Abstract {
     types: typeof BabelTypes;

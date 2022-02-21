@@ -1,6 +1,6 @@
 import * as Babel from "@babel/core";
 import * as BabelTypes from "@babel/types";
-import { ReplacementType } from "@jochlain/translations/lib/types";
+import { ReplacementType } from "@jochlain/translations/lib";
 import { LoaderType, OptionsType } from "../types";
 import Abstract from "./abstract";
 declare const _default: (types: typeof BabelTypes, loader: LoaderType, options: OptionsType) => TranslateMacro;

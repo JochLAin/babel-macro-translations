@@ -1,6 +1,6 @@
 import * as Babel from "@babel/core";
 import * as BabelTypes from "@babel/types";
-import { ReplacementType } from "@jochlain/translations/lib/types";
+import { ReplacementType } from "@jochlain/translations/lib";
 import { getCatalogValue, translate } from "@jochlain/translations";
 import { MacroError } from "babel-plugin-macros";
 import { IntlMessageFormat } from "intl-messageformat";
@@ -13,7 +13,6 @@ const AVAILABLE_OPTION_KEYS = ['domain', 'host', 'locale'];
 const SIGNATURE = `translate(message: identifier|string, replacements: identifier|{ [key: string]: number|string }, { domain: string = 'messages', locale: identifier|string = 'en', host?: string })`;
 
 const formatter = { format: (message: string, replacements: ReplacementType, locale: string): string => String((new IntlMessageFormat(message, locale)).format(replacements)) };
-let counter = -1;
 
 export default (types: typeof BabelTypes, loader: LoaderType, options: OptionsType) => {
     return new TranslateMacro(types, loader, options);

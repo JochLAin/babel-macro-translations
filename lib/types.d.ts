@@ -1,4 +1,4 @@
-import { CatalogType } from "@jochlain/translations/lib/types";
+import { CatalogType } from "@jochlain/translations/lib";
 export declare type LoaderType = {
     extension: RegExp;
     load: (content: string) => CatalogType;
