@@ -4,6 +4,7 @@ import { MacroError, MacroParams } from "babel-plugin-macros";
 import { resolve } from "path";
 import createFactoryTranslator from "./macros/createTranslator";
 import createFactoryTranslate from "./macros/translate";
+import { clear } from "./cache";
 import { InputType, LoaderType } from "./types";
 
 const AVAILABLE_METHODS = ['createTranslator', 'translate'];
@@ -17,6 +18,7 @@ const getOptions = (config: InputType) => {
 };
 
 export default (loader: LoaderType) =>  ({ babel, config, references }: MacroParams) => {
+    clear();
     const { types } = babel;
     const options = getOptions(config);
     const factoryTranslator = createFactoryTranslator(types, loader, options);
